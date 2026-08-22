@@ -1,0 +1,394 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL - matching the Search page theme exactly.
+*/
+
+@layer base {
+  :root {
+    /* SpotMe Light Mode Theme */
+    --background: 0 0% 0%; /* #FFFFFF */
+    --foreground: 210 22% 10%; /* #111827 */
+
+    --card: 0 0% 0%;
+    --card-foreground: 210 22% 10%;
+
+    --popover: 220 14% 97%;
+    --popover-foreground: 210 22% 10%;
+
+    /* SpotMe Brand Colors */
+    --primary: 84 81% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-end: 160 84% 39%;
+    --primary-solid: 160 84% 39%;
+    
+    --secondary: 0 0% 0%;
+    --secondary-foreground: 215 16% 33%; /* #4B5563 */
+
+    --muted: 210 14% 95%; /* #F2F4F7 */
+    --muted-foreground: 215 11% 42%; /* #6B7280 */
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    --ring: 160 84% 39%; /* your emerald */
+
+    /* SpotMe Theme Colors */
+    --brand-ring-outer: 123 98% 61%; /* #3AF063 */
+    --brand-ring-inner: 180 94% 48%; /* #0EE8E3 */
+    --verify-blue: 184 95% 44%; /* #05C6DE */
+    --rating-orange: 20 100% 58%; /* #FF7E29 */
+    --alert-red: 14 100% 57%; /* #FF6A00 */
+    --success-green: 142 76% 42%; /* #16A34A */
+    --goal-green: 142 76% 42%; /* #16A34A */
+    --availability-orange: 38 92% 50%; /* #F59E0B */
+    --nav-icon: 215 11% 42%; /* #6B7280 */
+    --nav-active: 210 22% 10%; /* #111827 */
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* SpotMe Dark Mode Theme - MATCHING SEARCH PAGE EXACTLY */
+    --background: 0 0% 0%; /* #1A1B2E - page background */
+    --foreground: 0 0% 100%; /* #FFFFFF - primary text */
+
+    --card: 226 18% 13%; /* #1D2233 - cards, surfaces */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 226 18% 13%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 180 94% 48%; /* #0EE8E3 - cyan start */
+    --primary-foreground: 0 0% 100%;
+    --primary-end: 96 97% 55%; /* #70FC1D - neon green end */
+    --primary-solid: 184 95% 44%; /* #05C6DE - solid cyan */
+
+    --secondary: 226 18% 13%; /* #1D2233 */
+    --secondary-foreground: 225 14% 79%; /* #C4C7D6 - secondary text */
+
+    --muted: 227 25% 15%; /* #22283A - inputs */
+    --muted-foreground: 225 9% 61%; /* #8E93A6 - muted text */
+
+    --accent: 184 95% 44%; /* #05C6DE */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 226 25% 27%; /* #2A2F44 - borders */
+    --input: 227 25% 15%; /* #22283A - input backgrounds */
+    --ring: 184 95% 44%;
+
+    /* SpotMe Dark Theme Colors - EXACT MATCH */
+    --brand-ring-outer: 123 98% 61%; /* #3AF063 */
+    --brand-ring-inner: 180 94% 48%; /* #0EE8E3 */
+    --verify-blue: 184 95% 44%; /* #05C6DE */
+    --rating-orange: 20 100% 58%; /* #FF7E29 */
+    --alert-red: 14 100% 57%; /* #FF6A00 */
+    --success-green: 143 69% 58%; /* #27D17F */
+    --goal-green: 98 100% 44%; /* #70E000 */
+    --availability-orange: 32 100% 56%; /* #FF9F1C */
+    --nav-icon: 222 14% 70%; /* #AEB3C9 */
+    --nav-active: 0 0% 100%; /* #FFFFFF */
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+  /* Mobile-first responsive design */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  /* Theme transition - applied only after initial load */
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: background-color 200ms ease-in-out,
+                color 200ms ease-in-out,
+                border-color 200ms ease-in-out,
+                box-shadow 200ms ease-in-out !important;
+  }
+}
+
+@layer components {
+  /* SpotMe Button Variants - MATCHING SEARCH PAGE */
+  .btn-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-end)));
+    @apply text-primary-foreground rounded-full font-semibold transition-all duration-200 hover:scale-105;
+  }
+  
+  .btn-secondary {
+    @apply bg-card text-foreground rounded-full font-medium border border-border hover:bg-muted transition-colors;
+  }
+  
+  /* SpotMe Card Styles - MATCHING SEARCH PAGE */
+  .card-gradient {
+    @apply bg-card border border-border rounded-2xl;
+  }
+  
+  /* SpotMe Avatar Styles - EXACT GRADIENT MATCH */
+  .avatar-ring {
+    background: linear-gradient(135deg, hsl(var(--brand-ring-outer)), hsl(var(--brand-ring-inner)));
+    @apply p-0.5 rounded-full;
+  }
+  
+  /* SpotMe Badge Styles */
+  .badge-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-end)));
+    @apply text-primary-foreground rounded-full text-xs font-medium px-3 py-1;
+  }
+  
+  /* SpotMe Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted rounded;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary-solid));
+    @apply rounded;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+  }
+  
+  /* SpotMe Navigation */
+  .nav-item-active {
+    color: hsl(var(--nav-active));
+    background-color: hsl(var(--primary-solid) / 0.1);
+    @apply rounded-lg;
+  }
+
+  /* Mobile optimizations */
+  .mobile-touch {
+    @apply select-none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  /* Improved mobile scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Utility classes for consistent theming */
+  .bg-page { background-color: hsl(var(--background)); }
+  .bg-surface { background-color: hsl(var(--card)); }
+  .bg-input { background-color: hsl(var(--input)); }
+  .border-default { border-color: hsl(var(--border)); }
+  .text-primary { color: hsl(var(--foreground)); }
+  .text-secondary { color: hsl(var(--secondary-foreground)); }
+  .text-muted { color: hsl(var(--muted-foreground)); }
+  .bg-brand-primarySolid { background-color: hsl(var(--primary-solid)); }
+  .text-brand-primarySolid { color: hsl(var(--primary-solid)); }
+  .bg-chip-goal { background-color: hsl(var(--goal-green)); }
+  .bg-chip-availability { background-color: hsl(var(--availability-orange)); }
+  .text-warn { color: hsl(var(--rating-orange)); }
+  .fill-warn { fill: hsl(var(--rating-orange)); }
+  .text-info-verifyBlue { color: hsl(var(--verify-blue)); }
+  .bg-info-verifyBlue { background-color: hsl(var(--verify-blue)); }
+  .text-state-alert { color: hsl(var(--alert-red)); }
+  .bg-state-alert { background-color: hsl(var(--alert-red)); }
+}
+
+/* Mobile viewport optimizations */
+@media (max-width: 768px) {
+  .container {
+    @apply px-4;
+  }
+  
+  /* Ensure touch targets are at least 44px */
+  button, 
+  a, 
+  input[type="button"], 
+  input[type="submit"], 
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    line-height: 1.6;
+  }
+  
+  /* Prevent horizontal scroll */
+  body, html {
+    overflow-x: hidden;
+  }
+}
+/* Force gray/slate cards and blocks to pure black */
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.bg-gray-300,
+.bg-gray-400,
+.bg-gray-500,
+.bg-gray-600,
+.bg-gray-700,
+.bg-gray-800,
+.bg-gray-900,
+.bg-slate-50,
+.bg-slate-100,
+.bg-slate-200,
+.bg-slate-300,
+.bg-slate-400,
+.bg-slate-500,
+.bg-slate-600,
+.bg-slate-700,
+.bg-slate-800,
+.bg-slate-900,
+.bg-zinc-50,
+.bg-zinc-100,
+.bg-zinc-200,
+.bg-zinc-300,
+.bg-zinc-400,
+.bg-zinc-500,
+.bg-zinc-600,
+.bg-zinc-700,
+.bg-zinc-800,
+.bg-zinc-900 {
+  background-color: #000000 !important;
+}
+/* Force app surfaces to black */
+.bg-background,
+[class*="bg-background"] {
+  background-color: #000000 !important;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+input,
+textarea,
+select {
+  color: white !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255,255,255,0.4) !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: white !important;
+
+  -webkit-box-shadow: 0 0 0 1000px rgba(35, 35, 35, 0.75) inset !important;
+  box-shadow: 0 0 0 1000px rgba(35, 35, 35, 0.75) inset !important;
+
+  border-color: rgba(52, 211, 153, 0.7) !important;
+
+  transition: background-color 9999s ease-in-out 0s;
+}
+input::placeholder {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+input::-webkit-input-placeholder {
+  color: white !important;
+  opacity: 1 !important;
+}
+@-moz-document url-prefix() {
+  .big-logo-s {
+    transform: translateY(6px);
+  }
+}
+@keyframes heartPop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  20% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.animate-\[heartPop_600ms_ease-out\] {
+  animation: heartPop 600ms ease-out;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background: transparent;
+}

@@ -1,0 +1,172 @@
+
+export const fitnessActivities = [
+  { id: 'gym', name: 'Gyms', emoji: '🏋️', description: 'Weight training and general fitness' },
+  { id: 'yoga', name: 'Yoga Studios', emoji: '🧘', description: 'Mind-body wellness and flexibility' },
+  { id: 'crossfit', name: 'CrossFit', emoji: '⚡', description: 'High-intensity functional fitness' },
+  { id: 'swimming', name: 'Swimming', emoji: '🏊', description: 'Pools and aquatic centers' },
+  { id: 'running', name: 'Running Spots', emoji: '🏃', description: 'Tracks, trails, and running groups' },
+  { id: 'boxing', name: 'Boxing Gyms', emoji: '🥊', description: 'Combat sports and boxing training' },
+  { id: 'martial-arts', name: 'Martial Arts', emoji: '🥋', description: 'Karate, MMA, and combat training' },
+  { id: 'powerlifting', name: 'Powerlifting', emoji: '💪', description: 'Strength training and heavy lifting' },
+  { id: 'climbing', name: 'Rock Climbing', emoji: '🧗', description: 'Indoor and outdoor climbing' },
+  { id: 'cycling', name: 'Cycling', emoji: '🚴', description: 'Spin classes and cycling groups' }
+];
+
+export const extendedMockUsers = [
+  {
+    id: '1',
+    name: 'Ryan Mitchell',
+    display_name: 'Ryan Mitchell',
+    initials: 'RM',
+    avatar: '/lovable-uploads/9fe10be6-6d1c-4f31-8226-d237f9234190.png',
+    bio: 'Powerlifter and fitness enthusiast. Looking for serious lifting partners who can spot heavy compounds.',
+    distance: '0.3 miles away',
+    experience: 'Advanced',
+    workoutType: 'Powerlifting',
+    workouts: ['Weight Training', 'Powerlifting', 'Strength Training'],
+    goals: ['Build Muscle', 'Increase Strength', 'Competition Prep'],
+    availability: ['Morning', 'Evening'],
+    rating: 4.9,
+    verified: true,
+    followers: 1250,
+    following: 340,
+    fitness_level: 'Advanced',
+    vibe: 'Serious Lifter',
+    home_gym: 'Iron Paradise Gym'
+  },
+  {
+    id: '2',
+    name: 'Sarah Chen',
+    display_name: 'Sarah Chen',
+    initials: 'SC',
+    avatar: '/assets/trainer-sarah.jpg',
+    bio: 'Certified yoga instructor and wellness coach. Love helping others find balance through movement.',
+    distance: '0.8 miles away',
+    experience: 'Expert',
+    workoutType: 'Yoga',
+    workouts: ['Yoga', 'Pilates', 'Meditation', 'Stretching'],
+    goals: ['Flexibility', 'Mental Wellness', 'Core Strength'],
+    availability: ['Morning', 'Afternoon'],
+    rating: 5.0,
+    verified: true,
+    followers: 890,
+    following: 220,
+    fitness_level: 'Advanced',
+    vibe: 'Zen Master',
+    home_gym: 'Serenity Yoga Studio'
+  },
+  {
+    id: '3',
+    name: 'Marcus Thompson',
+    display_name: 'Marcus Thompson',
+    initials: 'MT',
+    avatar: '/assets/trainer-marcus.jpg',
+    bio: 'CrossFit athlete and personal trainer. High-intensity workouts and functional fitness.',
+    distance: '1.2 miles away',
+    experience: 'Advanced',
+    workoutType: 'CrossFit',
+    workouts: ['CrossFit', 'HIIT', 'Olympic Lifting', 'Cardio'],
+    goals: ['Endurance', 'Functional Fitness', 'Competition'],
+    availability: ['Evening', 'Weekend'],
+    rating: 4.8,
+    verified: true,
+    followers: 2100,
+    following: 450,
+    fitness_level: 'Advanced',
+    vibe: 'High Energy',
+    home_gym: 'CrossFit Phoenix'
+  },
+  {
+    id: '4',
+    name: 'Emma Rodriguez',
+    display_name: 'Emma Rodriguez',
+    initials: 'ER',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400',
+    bio: 'Swimming coach and triathlete. Training for my next Ironman competition.',
+    distance: '1.8 miles away',
+    experience: 'Advanced',
+    workoutType: 'Swimming',
+    workouts: ['Swimming', 'Triathlon', 'Cycling', 'Running'],
+    goals: ['Endurance', 'Triathlon Training', 'Technique'],
+    availability: ['Morning', 'Weekend'],
+    rating: 4.7,
+    verified: true,
+    followers: 675,
+    following: 320,
+    fitness_level: 'Advanced',
+    vibe: 'Endurance Athlete',
+    home_gym: 'Aquatic Center'
+  },
+  {
+    id: '5',
+    name: 'Jake Williams',
+    display_name: 'Jake Williams',
+    initials: 'JW',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+    bio: 'Boxing enthusiast and MMA fighter. Looking for sparring partners and training buddies.',
+    distance: '2.1 miles away',
+    experience: 'Intermediate',
+    workoutType: 'Boxing',
+    workouts: ['Boxing', 'MMA', 'Martial Arts', 'Cardio'],
+    goals: ['Self Defense', 'Competition', 'Cardio Fitness'],
+    availability: ['Evening', 'Weekend'],
+    rating: 4.6,
+    verified: false,
+    followers: 420,
+    following: 180,
+    fitness_level: 'Intermediate',
+    vibe: 'Fighter Spirit',
+    home_gym: 'Underground Boxing'
+  },
+  {
+    id: '6',
+    name: 'Lisa Park',
+    display_name: 'Lisa Park',
+    initials: 'LP',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
+    bio: 'Rock climbing instructor and outdoor enthusiast. Love bouldering and lead climbing.',
+    distance: '3.2 miles away',
+    experience: 'Advanced',
+    workoutType: 'Climbing',
+    workouts: ['Rock Climbing', 'Bouldering', 'Core Training'],
+    goals: ['Climbing Technique', 'Upper Body Strength'],
+    availability: ['Afternoon', 'Weekend'],
+    rating: 4.9,
+    verified: true,
+    followers: 550,
+    following: 290,
+    fitness_level: 'Advanced',
+    vibe: 'Adventure Seeker',
+    home_gym: 'Vertical Limit Climbing'
+  }
+];
+
+export const spotRequests = [
+  {
+    id: '1',
+    requester: extendedMockUsers[0],
+    requestee: extendedMockUsers[1],
+    message: 'Hey! Would love to try some yoga to improve my flexibility. Could use your guidance!',
+    status: 'pending',
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    activity: 'Yoga Session'
+  },
+  {
+    id: '2',
+    requester: extendedMockUsers[2],
+    requestee: extendedMockUsers[0],
+    message: 'Saw your powerlifting posts! Want to do some heavy deadlifts together?',
+    status: 'accepted',
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+    activity: 'Powerlifting Session'
+  },
+  {
+    id: '3',
+    requester: extendedMockUsers[4],
+    requestee: extendedMockUsers[2],
+    message: 'CrossFit looks intense! Mind if I join one of your WODs?',
+    status: 'pending',
+    created_at: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    activity: 'CrossFit WOD'
+  }
+];

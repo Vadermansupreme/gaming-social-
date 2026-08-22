@@ -1,0 +1,60 @@
+project_id = "jtfmswgrhnjdunghqygf"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://jtfmswgrhnjdunghqygf.supabase.co"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
+
+[edge_runtime]
+enabled = true
+inspector_port = 8083
+
+# Default: all functions require JWT verification
+[functions]
+verify_jwt = true
+
+# Explicitly require JWT for all Google Places API functions to prevent billing abuse
+[functions.nearby-gyms]
+verify_jwt = true
+
+[functions.gym-details]
+verify_jwt = true
+
+[functions.text-search-gyms]
+verify_jwt = true
+
+[functions.geocode-zipcode]
+verify_jwt = true
+
+[functions.places]
+verify_jwt = true
+
+[functions.verify-invite]
+verify_jwt = false
