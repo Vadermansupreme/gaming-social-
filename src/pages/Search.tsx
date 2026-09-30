@@ -2,33 +2,34 @@ import { useState, useEffect, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Search as SearchIcon, X, Clock, TrendingUp, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { GymVibeBadge } from "@/components/GymVibeBadge";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 interface SearchResult {
   id: string;
   name: string;
   secondary: string;
   avatar: string;
-  vibe: string;
+  
 }
 
-const RECENT_SEARCHES_KEY = 'spotme_recent_searches';
+const RECENT_SEARCHES_KEY = 'bit_recent_searches';
 
 const Search = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+const isChatMode = searchParams.get("mode") === "chat";
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [suggestedUsers, setSuggestedUsers] = useState<SearchResult[]>([]);
   const [recentSearches, setRecentSearches] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-const [activeTab, setActiveTab] = useState<"places" | "people">("places");
-const [peopleSubTab, setPeopleSubTab] = useState<"all" | "myVibe">("all");
-const [userVibe, setUserVibe] = useState<string | null>(null);
+  
+
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -43,91 +44,74 @@ const [userVibe, setUserVibe] = useState<string | null>(null);
   }, []);
 
   // Fetch suggested users
-  useEffect(() => {
-    const fetchSuggested = async () => {
-      // get current user's vibe
-if (user?.id) {
-  const { data: currentUserProfile } = await supabase
-    .from("profiles")
-    .select("vibe")
-    .eq("id", user.id)
-    .single();
+useEffect(() => {
+  const fetchSuggested = async () => {
+    if (!user) return;
 
-  setUserVibe(currentUserProfile?.vibe ?? null);
-}
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, first_name, last_name, avatar_url, vibe, bio')
-          .neq('id', user.id)
-          .limit(5);
-
-        if (error) throw error;
-
-        const mapped = (data || []).map(profile => ({
-          id: profile.id,
-          name: profile.display_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User',
-          secondary: profile.bio?.slice(0, 50) || profile.vibe || 'SpotMe Member',
-          avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
-          vibe: profile.vibe || 'neutral',
-        }));
-
-        setSuggestedUsers(mapped);
-      } catch (error) {
-        console.error('Error fetching suggested users:', error);
-      }
-    };
-
-    fetchSuggested();
-  }, [user]);
-const allPeople = suggestedUsers;
-
-const myVibePeople = allPeople.filter((person) => {
-  return (
-    userVibe &&
-    person.vibe &&
-    person.vibe.toLowerCase() === userVibe.toLowerCase()
-  );
-});
-
-const displayedPeople =
-  peopleSubTab === "myVibe" ? myVibePeople : allPeople;
-
-  // Search for users
-  const searchUsers = useCallback(async (term: string) => {
-    if (!user || !term.trim()) {
-      setResults([]);
-      return;
-    }
-
-    setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('public_profiles')
-        .select('id, display_name, first_name, last_name, username, avatar_url, vibe, bio')
-        .neq('id', user.id)
-        .or(`display_name.ilike.%${term}%,first_name.ilike.%${term}%,last_name.ilike.%${term}%,username.ilike.%${term}%`)
-        .limit(20);
+        .from("profiles")
+        .select("id, display_name, username, avatar_url")
+        .neq("id", user.id)
+        .limit(5);
 
       if (error) throw error;
 
-      const mapped = (data || []).map(profile => ({
+      const mapped = (data || []).map((profile) => ({
         id: profile.id,
-        name: profile.display_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'User',
-        secondary: profile.bio?.slice(0, 50) || profile.vibe || 'SpotMe Member',
-        avatar: profile.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
-        vibe: profile.vibe || 'neutral',
+        name: profile.display_name || profile.username || "User",
+        secondary: profile.username ? `@${profile.username}` : "Bit member",
+        avatar:
+          profile.avatar_url ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.id}`,
+        
       }));
 
-      setResults(mapped);
+      setSuggestedUsers(mapped);
     } catch (error) {
-      console.error('Error searching users:', error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching suggested users:", error);
     }
-  }, [user]);
+  };
+
+  fetchSuggested();
+}, [user]);
+const displayedPeople = suggestedUsers;
+
+
+
+  // Search for users
+const searchUsers = useCallback(async (term: string) => {
+  if (!user || !term.trim()) {
+    setResults([]);
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, display_name, username, avatar_url")
+      .neq("id", user.id)
+      .or(`display_name.ilike.%${term}%,username.ilike.%${term}%`)
+      .limit(20);
+
+    if (error) throw error;
+
+    const mapped = (data || []).map((profile) => ({
+      id: profile.id,
+      name: profile.display_name || profile.username || "User",
+      secondary: profile.username ? `@${profile.username}` : "Bit member",
+      avatar: profile.avatar_url || "",
+    }));
+
+    setResults(mapped);
+  } catch (error) {
+    console.error("Error searching users:", error);
+  } finally {
+    setLoading(false);
+  }
+}, [user]);
 
   // Debounced search
   useEffect(() => {
@@ -149,7 +133,7 @@ const displayedPeople =
     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
     
     // Navigate to profile
-    navigate(`/profile/${result.id}`);
+    navigate(isChatMode ? `/chat/${result.id}` : `/profile/${result.id}`);
   };
 
   const clearRecentSearch = (id: string, e: React.MouseEvent) => {
@@ -175,7 +159,7 @@ const displayedPeople =
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white" />
             <Input
               type="text"
-              placeholder="Search fitness world"
+              placeholder="Search Bit"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-10 bg-input border-border text-foreground h-12"
@@ -214,9 +198,7 @@ const displayedPeople =
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{result.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <GymVibeBadge vibe={result.vibe} showArchetype={false} size="sm" />
-                    </div>
+                    
                   </div>
                 </button>
               ))
@@ -269,23 +251,7 @@ const displayedPeople =
             </div>
           </div>
         )}
-{activeTab === "people" && (
-  <Tabs
-    value={peopleSubTab}
-    onValueChange={(value) => setPeopleSubTab(value as "all" | "myVibe")}
-    className="w-full"
-  >
-    <TabsList className="grid w-full grid-cols-2">
-      <TabsTrigger value="all">
-        TEST ALL
-      </TabsTrigger>
 
-      <TabsTrigger value="myVibe">
-        TEST VIBE
-      </TabsTrigger>
-    </TabsList>
-  </Tabs>
-)}
         {/* Suggested Users */}
         {!isSearching && displayedPeople.length > 0 && (
           <div>
@@ -306,9 +272,7 @@ const displayedPeople =
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{item.name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <GymVibeBadge vibe={item.vibe} showArchetype={false} size="sm" />
-                    </div>
+                    
                   </div>
                 </button>
               ))}

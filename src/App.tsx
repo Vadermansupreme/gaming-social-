@@ -22,6 +22,7 @@ import Search from "./pages/Search";
 import CreatePost from "./pages/CreatePost";
 import AddPost from "./pages/AddPost";
 import Gyms from "./pages/Gyms";
+import Community from "./pages/Community";
 import GymDetails from "./pages/GymDetails";
 import Messages from "./pages/Messages";
 import Chat from "./pages/Chat";
@@ -161,6 +162,17 @@ const App: React.FC = () => {
                   <Route path="/search" element={<ProtectedRoute><MainLayout><Search /></MainLayout></ProtectedRoute>} />
                   <Route path="/add" element={<ProtectedRoute><MainLayout><CreatePost /></MainLayout></ProtectedRoute>} />
                   <Route path="/gyms" element={<ProtectedRoute><MainLayout><Gyms /></MainLayout></ProtectedRoute>} />
+                  
+                  <Route
+  path="/community/:slug"
+  element={
+    <ProtectedRoute>
+      <MainLayout>
+        <Community />
+      </MainLayout>
+    </ProtectedRoute>
+  }
+/>
                   <Route path="/spotme" element={<ProtectedRoute><MainLayout><SpotMe /></MainLayout></ProtectedRoute>} />
                   <Route path="/spotters" element={<ProtectedRoute><MainLayout><Search /></MainLayout></ProtectedRoute>} />
                   <Route path="/gym/:id" element={<ProtectedRoute><MainLayout><GymDetails /></MainLayout></ProtectedRoute>} />

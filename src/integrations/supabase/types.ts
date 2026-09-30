@@ -146,24 +146,24 @@ export type Database = {
       }
       follows: {
         Row: {
-          created_at: string
-          followed_id: string
-          follower_id: string
-        }
+  created_at: string
+  following_id: string
+  follower_id: string
+}
         Insert: {
           created_at?: string
-          followed_id: string
+          following_id: string
           follower_id: string
         }
         Update: {
           created_at?: string
-          followed_id?: string
+          following_id?: string
           follower_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "follows_followed_id_fkey"
-            columns: ["followed_id"]
+            columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "discoverable_profiles"
             referencedColumns: ["id"]

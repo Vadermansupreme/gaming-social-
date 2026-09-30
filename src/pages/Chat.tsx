@@ -60,8 +60,8 @@ const Chat = () => {
         
         // Fetch public profile data including allow_messages (bypasses RLS)
         const { data, error: publicError } = await supabase
-          .from('public_profiles')
-          .select('id, display_name, avatar_url, allow_messages')
+          .from('profiles')
+.select('id, display_name, avatar_url')
           .eq('id', chatUserId)
           .maybeSingle();
 

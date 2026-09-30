@@ -82,6 +82,21 @@ export const useRealTimeMessages = (recipientId?: string) => {
       };
 
       setMessages(prev => [...prev, newMessage]);
+      const { error: notificationError } = await (supabase as any)
+  .from("notifications")
+  .insert({
+    user_id: recipientId,
+    actor_id: user.id,
+    type: "message",
+    message: text.trim(),
+    is_read: false,
+    related_id: null,
+    link: `/chat/${user.id}`,
+  });
+
+if (notificationError) {
+  console.error("Error creating message notification:", notificationError);
+}
     } catch (error) {
       console.error('Error sending message:', error);
       throw error;

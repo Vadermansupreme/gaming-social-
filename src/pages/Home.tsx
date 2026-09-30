@@ -145,20 +145,19 @@ document.addEventListener('touchend', handleTouchEnd, { passive: true });
         )}
 
         {isLoading ? (
-          <LoadingSpinner />
-        ) : hasRealContent ? (
-          <SocialFeed 
-            currentUserId={user?.id} 
-            newPost={newPost}
-            authorProfile={authorProfile}
-            onOpenCreatePost={(action = null) => {
-  setCreatePostAction(action);
-  setShowCreatePost(true);
-}}
-          />
-        ) : (
-          <SampleFeed currentUserId={user?.id} />
-        )}
+  <LoadingSpinner />
+) : (
+  <SocialFeed
+    currentUserId={user?.id}
+    newPost={newPost}
+    authorProfile={authorProfile}
+    onOpenCreatePost={(action = null) => {
+      setCreatePostAction(action);
+      setShowCreatePost(true);
+    }}
+  />
+)}
+          
       </div>
 
       {/* Create Post Modal */}

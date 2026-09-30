@@ -77,11 +77,11 @@ const handleDeleteComment = async (commentId: string) => {
           text,
           created_at,
           author_id,
-          author:profiles!comments_author_id_fkey (
-            display_name,
-            avatar_url,
-            verified
-          )
+          author:profiles (
+  display_name,
+  avatar_url
+
+)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: false });

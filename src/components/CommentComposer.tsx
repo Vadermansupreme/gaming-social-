@@ -34,6 +34,12 @@ const CommentComposer = ({ postId, currentUserId, onCommentAdded, compact = fals
         });
 
       if (error) throw error;
+      const { error: countError } = await supabase
+  .from("posts")
+  .update({ comment_count: 1 })
+  .eq("id", postId);
+
+if (countError) throw countError;
       
       setText("");
       toast.success("Comment posted!");

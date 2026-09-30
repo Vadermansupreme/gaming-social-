@@ -57,7 +57,7 @@ const Auth = () => {
       }
 
       const validatedData = result.data;
-      const redirectUrl = `${window.location.origin}/onboarding`;
+      const redirectUrl = `${window.location.origin}/`;
       
       const { error } = await supabase.auth.signUp({
         email: validatedData.email,

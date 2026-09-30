@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Heart, Repeat2, MessageCircle, Share, MoreVertical, Trash2, Play } from "lucide-react";
+import { Repeat2, MessageCircle, Share, MoreVertical, Trash2, Play, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -18,7 +18,24 @@ import CommentList from "./CommentList";
 import CommentComposer from "./CommentComposer";
 import MediaViewer from "./MediaViewer";
 import { useNavigate } from "react-router-dom";
-
+const BitHeart = ({
+  filled = false,
+  className = "",
+}: {
+  filled?: boolean;
+  className?: string;
+}) => (
+  <span
+    className={`inline-flex ${className}`}
+    aria-hidden="true"
+  >
+    <Zap
+      className="h-full w-full scale-x-[0.82] scale-y-[1.18]"
+      fill={filled ? "currentColor" : "none"}
+      strokeWidth={2.2}
+    />
+  </span>
+);
 interface SocialPostProps {
   post: {
     id: string;
@@ -31,18 +48,33 @@ interface SocialPostProps {
     };
     author_id: string;
     like_count?: number;
-    comment_count?: number;
+    comment_count?: number; 
     media_urls?: string[] | null;
     repost_of?: string | null;
+    community?: {
+  name: string;
+  slug: string;
+} | null;
   };
   currentUserId?: string;
   onLikeChange?: (delta: number) => void;
   onCommentChange?: (delta: number) => void;
   onDelete?: () => void;
   onOpenComments?: (post: SocialPostProps["post"]) => void;
+  defaultShowComments?: boolean;
+  canParticipate?: boolean;
 }
 
-const SocialPost = ({ post, currentUserId, onLikeChange, onCommentChange,onDelete, onOpenComments }: SocialPostProps) => {
+const SocialPost = ({
+  post,
+  currentUserId,
+  onLikeChange,
+  onCommentChange,
+  onDelete,
+  onOpenComments,
+  defaultShowComments = false,
+  canParticipate = true,
+}: SocialPostProps) => {
   const navigate = useNavigate();
   const [liked, setLiked] = useState(false);
   const [showBigHeart, setShowBigHeart] = useState(false);
@@ -142,11 +174,14 @@ useEffect(() => {
         text,
         media_urls,
         created_at,
+        community:communities (
+  name,
+  slug
+),
         author:profiles (
-          display_name,
-          avatar_url,
-          verified
-        )
+  display_name,
+  avatar_url
+)
       `)
       .eq("id", (post as any).repost_of)
       .single();
@@ -220,19 +255,43 @@ useEffect(() => {
       } else {
         // Like - insert into likes
         const { error } = await supabase
-          .from('likes')
-          .insert({ post_id: post.id, user_id: currentUserId });
-        
-        // Handle duplicate key error (23505) - already liked, treat as success
-        if (error) {
-          if (error.code === '23505') {
-            // Already liked - keep optimistic state (liked=true)
-            console.log('Like already exists, keeping liked state');
-          } else {
-            console.error('Like error:', { code: error.code, message: error.message });
-            throw error;
-          }
-        }
+  .from('likes')
+  .insert({
+    post_id: post.id,
+    user_id: currentUserId
+  });
+
+if (error) {
+  if (error.code === '23505') {
+    console.log('Like already exists, keeping liked state');
+  } else {
+    console.error('Like error:', {
+      code: error.code,
+      message: error.message
+    });
+    throw error;
+  }
+} else if (currentUserId !== post.author_id) {
+  const { error: notificationError } =
+    await (supabase as any)
+      .from("notifications")
+      .insert({
+        user_id: post.author_id,
+        actor_id: currentUserId,
+        type: "like",
+        message: "liked your workout",
+        is_read: false,
+        related_id: post.id,
+        link: `/post/${post.id}`,
+      });
+
+  if (notificationError) {
+    console.error(
+      "Error creating like notification:",
+      notificationError
+    );
+  }
+}
       }
     } catch (error: any) {
       // Rollback optimistic update on error
@@ -289,9 +348,14 @@ useEffect(() => {
     }
   };
   const handleRepost = async () => {
-    const sb: any = supabase;
+  if (!currentUserId) {
+    toast.error("You must be signed in to Respawn");
+    return;
+  }
+
+  const sb: any = supabase;
+
   try {
-    // check if already reposted
     const { data: existing, error: checkError } = await sb
       .from("post_reposts")
       .select("id")
@@ -302,40 +366,78 @@ useEffect(() => {
     if (checkError) throw checkError;
 
     if (existing) {
-      toast.error("Already spotlighted");
+      const { error: feedDeleteError } = await sb
+        .from("posts")
+        .delete()
+        .eq("author_id", currentUserId)
+        .eq("repost_of", post.id);
+
+      if (feedDeleteError) throw feedDeleteError;
+
+      const { error: respawnDeleteError } = await sb
+        .from("post_reposts")
+        .delete()
+        .eq("id", existing.id);
+
+      if (respawnDeleteError) throw respawnDeleteError;
+
+      setRepostCount((prev) => Math.max(0, prev - 1));
+      toast.success("Respawn removed");
       return;
     }
 
-    // insert repost tracking row
-const { error: insertError } = await sb
-  .from("post_reposts")
-  .insert({
-    post_id: post.id,
-    user_id: currentUserId,
-  });
+    const { error: insertError } = await sb
+      .from("post_reposts")
+      .insert({
+        post_id: post.id,
+        user_id: currentUserId,
+      });
 
-if (insertError) throw insertError;
+    if (insertError) throw insertError;
 
-// create repost feed item
-const { error: feedInsertError } = await sb
-  .from("posts")
-  .insert({
-    author_id: currentUserId,
-    text: null,
-    media_urls: null,
-    repost_of: post.id,
-  });
+    const { error: feedInsertError } = await sb
+      .from("posts")
+      .insert({
+        author_id: currentUserId,
+        text: null,
+        media_urls: null,
+        repost_of: post.id,
+      });
 
+    if (feedInsertError) {
+      await sb
+        .from("post_reposts")
+        .delete()
+        .eq("post_id", post.id)
+        .eq("user_id", currentUserId);
 
-    if (feedInsertError) throw feedInsertError;
+      throw feedInsertError;
+    }
+if (currentUserId !== post.author_id) {
+  const { error: notificationError } = await sb
+    .from("notifications")
+    .insert({
+      user_id: post.author_id,
+      actor_id: currentUserId,
+      type: "repost",
+      message: "respawned your post",
+      is_read: false,
+      related_id: post.id,
+      link: `/post/${post.id}`,
+    });
 
-    // update UI
+  if (notificationError) {
+    console.error(
+      "Error creating Respawn notification:",
+      notificationError
+    );
+  }
+}
     setRepostCount((prev) => prev + 1);
-
-    toast.success("Spotlighted");
+    toast.success("Respawned");
   } catch (error) {
-    console.error(error);
-    toast.error("Failed to spotlight");
+    console.error("Respawn error:", error);
+    toast.error("Failed to update Respawn");
   }
 };
  const handleMediaClick = (index: number) => {
@@ -404,7 +506,7 @@ function formatPostTime(createdAt: string) {
   className="w-full gap-0 py-0 rounded-none border-x-0 border-t-0 sm:rounded-2xl sm:border"
 >
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-2 -translate-y-1 sm:translate-y-0 sm:pb-3 sm:pt-4">
+      <div className="flex items-start justify-between gap-3 px-4 pt-3 pb-1 -translate-y-1 sm:translate-y-0 sm:pb-3 sm:pt-4">
         <div className="flex min-w-0 items-center gap-3">
           <Avatar
             className="h-10 w-10 shrink-0 cursor-pointer"
@@ -418,32 +520,23 @@ function formatPostTime(createdAt: string) {
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2">
-              <h3
-                className="truncate text-[15px] font-semibold text-white hover:underline cursor-pointer"
-                onClick={() => navigate(`/profile/${post.author_id}`)}
-              >
-                {post.author.display_name}
-              </h3>
+  <h3
+    className="truncate text-[15px] font-semibold text-white hover:underline cursor-pointer"
+    onClick={() => navigate(`/profile/${post.author_id}`)}
+  >
+    {post.author.display_name}
+  </h3>
 
-              {post.author.verified && (
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-500">
-                  <svg
-                    className="h-2.5 w-2.5 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </span>
-              )}
+  <span className="text-xs text-white/45">
+    @devan_miles
+  </span>
 
-              <span className="w-full text-xs text-white/45">
-  {formatPostTime(post.created_at)}
-</span>
+  <span className="text-xs text-white/45">·</span>
+
+  <span className="text-xs text-white/45">
+    {formatPostTime(post.created_at)}
+  </span>
+
             </div>
           </div>
         </div>
@@ -469,15 +562,23 @@ function formatPostTime(createdAt: string) {
           </DropdownMenu>
         )}
       </div>
-
+{post.community && (
+  <button
+    type="button"
+    onClick={() => navigate(`/community/${post.community?.slug}`)}
+    className="mx-4 mb-2 text-xs font-semibold text-cyan-400 transition hover:text-cyan-300 hover:underline"
+  >
+    From the {post.community.name} community
+  </button>
+)}
       {/* Caption */}
-      {post.text && (
-        <div className="px-4 pb-2">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/90">
-            {post.text}
-          </p>
-        </div>
-      )}
+{post.text && (
+  <div className="px-4 pt-1 pb-3">
+    <p className="whitespace-pre-wrap text-[15px] leading-6 text-white/90">
+      {post.text}
+    </p>
+  </div>
+)}
 
       {/* Repost */}
       {(post as any).repost_of && (
@@ -486,7 +587,7 @@ function formatPostTime(createdAt: string) {
   <span className="h-2 w-2 rounded-full bg-lime-400" />
 
   <p className="text-xs font-semibold uppercase tracking-wide text-lime-400">
-    Spotlighted post
+    Respawned post
   </p>
 </div>
 
@@ -515,7 +616,17 @@ function formatPostTime(createdAt: string) {
   </p>
 </div>
               </div>
-
+{originalPost.community && (
+  <button
+    type="button"
+    onClick={() =>
+      navigate(`/community/${originalPost.community.slug}`)
+    }
+    className="mx-3 mb-2 text-xs font-semibold text-cyan-400 transition hover:text-cyan-300 hover:underline"
+  >
+    From the {originalPost.community.name} community
+  </button>
+)}
               {originalPost.text && (
                 <p className="whitespace-pre-wrap px-3 pb-3 text-sm leading-relaxed text-white/85">
                   {originalPost.text}
@@ -526,7 +637,7 @@ function formatPostTime(createdAt: string) {
   <div className="w-full">
     <img
       src={originalPost.media_urls[0]}
-      alt="Reposted content"
+      alt="Respawned content"
       className="max-h-[620px] w-full object-cover"
       onError={(e) => {
         e.currentTarget.parentElement?.remove();
@@ -579,7 +690,10 @@ function formatPostTime(createdAt: string) {
 
                   {showBigHeart && (
                     <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
-                      <Heart className="h-36 w-36 animate-[heartPop_600ms_ease-out] fill-green-500 text-green-500 opacity-95 drop-shadow-[0_0_25px_rgba(255,255,255,0.8)]" />
+                      <BitHeart
+  filled
+  className="h-36 w-36 animate-[heartPop_600ms_ease-out] text-lime-400"
+/>
                     </div>
                   )}
                 </div>
@@ -656,15 +770,16 @@ function formatPostTime(createdAt: string) {
             className="flex items-center gap-2 text-sm text-white/70 transition hover:text-white disabled:opacity-50"
             aria-label={liked ? "Unlike post" : "Like post"}
           >
-            <Heart
-              className={`h-6 w-6 transition-all duration-200 ${
-                liked
-                  ? animateHeartIcon
-                    ? "scale-110 fill-lime-400 text-lime-400"
-                    : "scale-100 fill-lime-400 text-lime-400"
-                  : "text-white/80"
-              }`}
-            />
+            <BitHeart
+  filled={liked}
+  className={`h-6 w-6 transition-all duration-200 ${
+    liked
+      ? animateHeartIcon
+        ? "scale-110 text-lime-400"
+        : "scale-100 text-lime-400"
+      : "text-white/80"
+  }`}
+/>
             <span
               className={`transition-all duration-300 ${
                 animateLikeCount ? "scale-125 text-green-400" : ""
@@ -676,7 +791,13 @@ function formatPostTime(createdAt: string) {
 
           <button
             type="button"
-            onClick={() => onOpenComments?.(post)}
+            onClick={() => {
+  if (!canParticipate) return;
+
+  onOpenComments
+    ? onOpenComments(post)
+    : setShowComments((current) => !current);
+}}
             className="flex items-center gap-2 text-sm text-white/70 transition hover:text-white"
             aria-label="Open comments"
           >
@@ -688,7 +809,7 @@ function formatPostTime(createdAt: string) {
             type="button"
             onClick={handleRepost}
             className="flex items-center gap-2 text-sm text-white/70 transition hover:text-white"
-            aria-label="Spotlight post"
+            aria-label="Respawn post"
           >
             <Repeat2 className="h-6 w-6" />
             <span>{repostCount}</span>
@@ -706,18 +827,26 @@ function formatPostTime(createdAt: string) {
       </div>
 
       {/* Comments */}
-      {showComments && (
-        <div className="border-t border-white/10 bg-black/25 px-4 pb-4">
-          <div className="space-y-4 pt-4">
-            <CommentList postId={post.id} />
-            <CommentComposer
-              postId={post.id}
-              currentUserId={currentUserId}
-              onCommentAdded={handleCommentAdded}
-            />
-          </div>
-        </div>
+{(defaultShowComments || showComments) && (
+  <div className="border-t border-white/10 bg-black/25 px-4 pb-4">
+    <div className="space-y-4 pt-4">
+      <CommentList postId={post.id} />
+      {!canParticipate && (
+  <p className="rounded-xl border border-purple-400/20 bg-purple-500/10 px-4 py-3 text-sm text-purple-200">
+    Join this community to participate.
+  </p>
+)}
+
+      {showComments && canParticipate && (
+  <CommentComposer
+          postId={post.id}
+          currentUserId={currentUserId}
+          onCommentAdded={handleCommentAdded}
+        />
       )}
+    </div>
+  </div>
+)}
 
       {/* Media Viewer */}
       {post.media_urls && (

@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetClose, SheetHeader, SheetTitle, SheetTrigger 
 import { useNotifications, EnrichedNotification } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NotificationCenterProps {
   userId?: string;
@@ -63,8 +64,10 @@ const NotificationCenter = ({ userId }: NotificationCenterProps) => {
     // Close sheet before navigating
     setOpen(false);
     
-    if (notification.type === 'follow' && actorId) {
-      navigate(`/profile/${actorId}`);
+    if (notification.type === 'message' && actorId) {
+  navigate(`/chat/${actorId}`);
+} else if (notification.type === 'follow' && actorId) {
+  navigate(`/profile/${actorId}`);
     } else if (notification.data?.post_id) {
       navigate(`/post/${notification.data.post_id}`);
     } else if (actorId) {
@@ -73,6 +76,7 @@ const NotificationCenter = ({ userId }: NotificationCenterProps) => {
   };
 
   const handleFollowBack = async (e: React.MouseEvent, actorId: string) => {
+
     e.stopPropagation(); // Prevent card click
     
     const success = await followActor(actorId);
@@ -82,7 +86,94 @@ const NotificationCenter = ({ userId }: NotificationCenterProps) => {
       toast.error('Failed to follow');
     }
   };
+const handleAcceptFollowRequest = async (
+  e: React.MouseEvent,
+  notification: EnrichedNotification,
+  actorId: string
+) => {
+  e.stopPropagation();
 
+  if (!userId) return;
+
+  try {
+    const { error: followError } = await supabase
+      .from("follows")
+      .insert({
+        follower_id: actorId,
+        following_id: userId,
+      });
+
+    if (followError && followError.code !== "23505") {
+      throw followError;
+    }
+
+    const { error: requestError } = await (supabase as any)
+      .from("follow_requests")
+      .delete()
+      .eq("requester_id", actorId)
+      .eq("requested_id", userId);
+
+    if (requestError) {
+      throw requestError;
+    }
+    const { error: acceptedNotificationError } =
+  await (supabase as any)
+    .from("notifications")
+    .insert({
+      user_id: actorId,
+      actor_id: userId,
+      type: "follow_accepted",
+      message: "accepted your follow request",
+      is_read: false,
+      related_id: null,
+      link: `/profile/${userId}`,
+    });
+
+if (acceptedNotificationError) {
+  console.error(
+    "Error creating accepted notification:",
+    acceptedNotificationError
+  );
+}
+window.dispatchEvent(
+  new CustomEvent("follow-relationship-updated")
+);
+    toast.success("Follow request accepted");
+
+    await deleteNotification(notification.id);
+  } catch (error) {
+    console.error("Error accepting follow request:", error);
+    toast.error("Failed to accept follow request");
+  }
+};
+const handleDeclineFollowRequest = async (
+  e: React.MouseEvent,
+  notification: EnrichedNotification,
+  actorId: string
+) => {
+  e.stopPropagation();
+
+  if (!userId) return;
+
+  try {
+    const { error: requestError } = await (supabase as any)
+      .from("follow_requests")
+      .delete()
+      .eq("requester_id", actorId)
+      .eq("requested_id", userId);
+
+    if (requestError) {
+      throw requestError;
+    }
+
+    toast.success("Follow request declined");
+
+    await deleteNotification(notification.id);
+  } catch (error) {
+    console.error("Error declining follow request:", error);
+    toast.error("Failed to decline follow request");
+  }
+};
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -130,6 +221,8 @@ const NotificationCenter = ({ userId }: NotificationCenterProps) => {
               
               const actorId = getActorId(notification);
               const showFollowBack = notification.type === 'follow' && actorId && !isFollowingActor(actorId);
+              const showFollowRequestActions =
+  notification.type === "follow_request" && actorId;
               const isTrendingSpot = notification.type === 'trending_spot';
               const vibeColors: Record<string, string> = {
   casual: '#9CA3AF',
@@ -149,9 +242,12 @@ const notificationEmoji =
     : notification.type === "follow"
     ? "👤"
     : notification.type === "repost"
-    ? "🔥"
-    : "🔔";
+? "🔥"
+: notification.type === "message"
+? "💬"
+: "🔔";
 
+    
 const notificationText =
   notification.type === "trending_spot"
     ? notification.message?.replace(
@@ -164,9 +260,13 @@ const notificationText =
     ? `${actorName} commented on your workout`
     : notification.type === "follow"
     ? `${actorName} followed you`
+    : notification.type === "follow_accepted"
+? `${actorName} accepted your follow request`
     : notification.type === "repost"
-    ? `${actorName} spotlighted your workout`
-    : notification.message || "You have a new notification";
+? `${actorName} respawned your post`
+: notification.type === "message"
+? `${actorName} sent you a message`
+: notification.message || "You have a new notification";
               return (
                 <Card
   key={notification.id}
@@ -197,6 +297,7 @@ const notificationText =
   <span>{notificationText}</span>
 </h4>
                       {notification.type !== "trending_spot" &&
+  notification.type !== "follow_accepted" &&
   notification.message &&
   notification.message !== notificationText && (
     <p className="mt-1 text-sm text-white/65">
@@ -219,7 +320,37 @@ const notificationText =
   aria-label="Delete notification"
 >
   <Trash2 className="h-4 w-4" />
-</button>
+</button>{showFollowRequestActions && (
+  <Button
+    size="sm"
+    onClick={(e) =>
+      handleAcceptFollowRequest(
+        e,
+        notification,
+        actorId!
+      )
+    }
+    className="border border-emerald-500 text-emerald-400 bg-black hover:bg-emerald-500 hover:text-black px-4 py-2 text-sm"
+  >
+    Accept
+  </Button>
+)}
+{showFollowRequestActions && (
+  <Button
+    size="sm"
+    variant="outline"
+    onClick={(e) =>
+      handleDeclineFollowRequest(
+        e,
+        notification,
+        actorId!
+      )
+    }
+    className="border border-white/20 text-white bg-black hover:bg-white/10 px-4 py-2 text-sm"
+  >
+    Decline
+  </Button>
+)}
                       {/* Follow Back button */}
                       {showFollowBack && (
                         <Button

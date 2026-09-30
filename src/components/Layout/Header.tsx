@@ -1,4 +1,4 @@
-import { Menu, Plus, ArrowLeft } from "lucide-react";
+import { Menu, Plus, ArrowLeft, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import NotificationCenter from "@/components/NotificationCenter";
 import { supabase } from "@/integrations/supabase/client";
-import spotmeLogo from "@/assets/spotme-logo-new.png";
+
 
 const Header = () => {
   const navigate = useNavigate();
@@ -48,8 +48,8 @@ const handleGoToUpdates = () => {
   
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 pt-safe pb-2">
-      <div className="flex items-center justify-between px-4 py-3 max-w-md mx-auto">
+    <header className="fixed top-3 left-0 right-0 z-50 bg-background/95 pt-safe pb-2">
+      <div className="mx-auto flex w-full max-w-[1280px] items-center justify-between rounded-2xl border border-white/10 bg-black/70 px-5 py-3">
         <div className="flex items-center gap-3 bg-transparent">
   {location.pathname === "/profile" && (
     <button
@@ -63,9 +63,22 @@ const handleGoToUpdates = () => {
   )}
 
   
-          <img src={spotmeLogo} alt="SpotMe" className="w-8 h-8 bg-transparent" />
-          <span className="text-xl font-bold text-white tracking-tight select-none">SpotMe</span>
+          <div className="w-8 h-8 rounded-lg border border-white flex items-center justify-center font-bold text-white">
+  b
+</div>
+          <span className="text-xl font-bold text-white tracking-tight select-none">bit</span>
         </div>
+        <div className="hidden md:flex flex-1 justify-center px-8">
+  <div className="flex w-full max-w-[430px] items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 py-3">
+    <Search className="h-5 w-5 text-white/40" />
+
+    <input
+      type="text"
+      placeholder="Search bit"
+      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 outline-none"
+    />
+  </div>
+</div>
         
         <div className="flex items-center gap-0">
         <Button

@@ -117,7 +117,7 @@ const Messages = () => {
       if (conversationsError) throw conversationsError;
 
       if (!conversationsData || conversationsData.length === 0) {
-        setConversations(mockConversations);
+        setConversations([]);
         return;
       }
 
@@ -128,8 +128,8 @@ const Messages = () => {
           
           // Get other user's profile
           const { data: profile } = await supabase
-            .from('public_profiles')
-            .select('id, display_name, avatar_url, vibe')
+            .from('profiles')
+            .select('id, display_name, avatar_url')
             .eq('id', otherUserId)
             .maybeSingle();
             console.log("MESSAGE PROFILE:", profile);
@@ -149,7 +149,7 @@ const Messages = () => {
   id: otherUserId,
   display_name: profile?.display_name || 'User',
   avatar_url: profile?.avatar_url,
-  vibe: profile?.vibe,
+  
 },
             lastMessage: lastMessage?.text || 'No messages yet',
             timestamp: lastMessage?.created_at || conv.last_message_at || conv.created_at,
@@ -162,13 +162,13 @@ const Messages = () => {
     } catch (error) {
       console.error('Error fetching conversations:', error);
       // Fallback to mock data if there's an error
-      setConversations(mockConversations);
+      setConversations([]);
     }
   };
 
   const startNewConversation = () => {
-    navigate('/search');
-  };
+  navigate('/search?mode=chat');
+};
 
   return (
     <div className="px-4 pt-6 bg-background min-h-screen pb-24">

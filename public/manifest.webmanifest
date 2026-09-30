@@ -1,7 +1,7 @@
 {
-  "name": "SpotMe",
-  "short_name": "SpotMe",
-  "description": "Find your fitness partner, anytime, anywhere.",
+  "name": "BIT",
+"short_name": "BIT",
+"description": "The social network for gamers.",
   "theme_color": "#1A1B2E",
   "background_color": "#1A1B2E",
   "display": "standalone",

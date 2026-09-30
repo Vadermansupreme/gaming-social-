@@ -31,7 +31,7 @@ export default function Activity() {
   .order("created_at", { ascending: false });
 
   const { data: reposts, error: repostsError } = await (supabase as any)
-  .from("reposts")
+  .from("post_reposts")
   .select("id, created_at, user_id, post_id")
   .eq("user_id", user.id)
   .order("created_at", { ascending: false });
@@ -82,7 +82,7 @@ export default function Activity() {
               {item.type === "like" ? (
   <span>❤️ You liked a post</span>
 ) : (
-  <span>🔁 You reposted a post</span>
+  <span>🔁 You respawned a post</span>
 )}
             </div>
           ))

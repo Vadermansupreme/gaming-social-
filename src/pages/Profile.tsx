@@ -9,6 +9,8 @@ import {
   MessageSquare,
   Image,
   Video,
+  Lock,
+  Globe2,
   Grid,
   Play,
   Shield,
@@ -129,7 +131,7 @@ useEffect(() => {
       try {
         const { data: rows, error } = await supabase
           .from('posts')
-          .select('id, text, created_at, media_urls, like_count, comment_count, author_id')
+          .select('id, text, created_at, media_urls, like_count, comment_count, author_id, repost_of, repost_count')
           .eq('author_id', user.id)
           .is('deleted_at', null)
           .order('created_at', { ascending: false });
@@ -150,6 +152,8 @@ useEffect(() => {
           media_urls: row.media_urls,
           like_count: row.like_count ?? 0,
           comment_count: row.comment_count ?? 0,
+          repost_of: row.repost_of ?? null,
+repost_count: row.repost_count ?? 0,
           author,
         }));
         setProfilePosts(posts);
@@ -187,30 +191,23 @@ useEffect(() => {
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
+        const { count: followersCount } = await supabase
+  .from('follows')
+  .select('*', { count: 'exact', head: true })
+  .eq('following_id', user.id);
 
-      if (profileData) {
-        setProfile({
+const { count: followingCount } = await supabase
+  .from('follows')
+  .select('*', { count: 'exact', head: true })
+  .eq('follower_id', user.id);
+  setProfile({
   ...profileData,
+  followers_count: followersCount ?? 0,
+  following_count: followingCount ?? 0,
   my_spots: (profileData as any).preferred_workouts || [],
 });
-      } else {
-        const newProfile = {
-  id: user.id,
-  display_name: user.email?.split('@')[0] || 'User',
-  bio: '',
-  avatar_url: null,
-  cover_photo_url: null,
-  is_visible: true,
-  spotlight_post_ids: [],
-}; 
-        const { data: createdProfile } = await supabase
-          .from('profiles')
-          .insert(newProfile)
-          .select()
-          .single();
 
-        setProfile(createdProfile || newProfile);
-      }
+      
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
@@ -329,7 +326,50 @@ useEffect(() => {
       toast.error('Failed to upload media');
     }
   };
+const handlePrivacyToggle = async () => {
+  if (!user?.id || !profile) return;
 
+  const newValue = !profile.is_private;
+
+  setProfile((prev: any) =>
+    prev
+      ? {
+          ...prev,
+          is_private: newValue,
+        }
+      : prev
+  );
+
+  try {
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({
+        is_private: newValue,
+      })
+      .eq("id", user.id);
+
+    if (error) throw error;
+
+    toast.success(
+      newValue
+        ? "Account is now private"
+        : "Account is now public"
+    );
+  } catch (error) {
+    console.error("Error updating privacy:", error);
+
+    setProfile((prev: any) =>
+      prev
+        ? {
+            ...prev,
+            is_private: !newValue,
+          }
+        : prev
+    );
+
+    toast.error("Failed to update account privacy");
+  }
+};
   if (loading) {
     return <LoadingSpinner />;
   }
@@ -401,15 +441,56 @@ useEffect(() => {
             
 
             {/* Action Buttons */}
-            <div className="mb-6">
-              <Button
-  onClick={() => navigate('/profile/edit')}
-  className="w-full bg-emerald-500 hover:bg-emerald-600 text-white border border-white/20"
->
-  Edit Profile
-</Button>
-              
-            </div>
+            <div className="mb-6 space-y-3">
+  <Button
+    onClick={() => navigate("/profile/edit")}
+    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white border border-white/20"
+  >
+    Edit Profile
+  </Button>
+
+  <button
+    type="button"
+    onClick={handlePrivacyToggle}
+    className="w-full flex items-center justify-between rounded-xl border border-white/15 px-4 py-3 hover:bg-white/5 transition"
+  >
+    <div className="flex items-center gap-3 text-left">
+      {profile?.is_private ? (
+        <Lock className="w-5 h-5 text-white" />
+      ) : (
+        <Globe2 className="w-5 h-5 text-white" />
+      )}
+
+      <div>
+        <p className="text-sm font-medium text-white">
+          Private account
+        </p>
+
+        <p className="text-xs text-white/50">
+          {profile?.is_private
+            ? "Only approved followers can view your content"
+            : "Anyone can follow and view your content"}
+        </p>
+      </div>
+    </div>
+
+    <div
+      className={`relative w-11 h-6 rounded-full transition ${
+        profile?.is_private
+          ? "bg-emerald-500"
+          : "bg-white/20"
+      }`}
+    >
+      <div
+        className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+          profile?.is_private
+            ? "translate-x-6"
+            : "translate-x-1"
+        }`}
+      />
+    </div>
+  </button>
+</div>
           </div>
 
 
@@ -494,7 +575,7 @@ useEffect(() => {
     value="spotlight"
     className="bg-black text-white rounded-r-xl border border-emerald-500 data-[state=active]:bg-emerald-500 data-[state=active]:text-black data-[state=active]:shadow-none"
   >
-    My Spots
+    Respawns
   </TabsTrigger>
 </TabsList>
 
@@ -550,35 +631,35 @@ useEffect(() => {
   </TabsContent>
 
             <TabsContent value="spotlight" className="mt-4">
-              <div className="space-y-4">
-                {profile?.my_spots && profile.my_spots.length > 0 ? (
-                  profile.my_spots.map((spot) => (
-                    <Card key={spot} className="p-4">
-                      <div className="ml-auto -translate-x-1 flex items-center gap-2 md:gap-3 md:translate-x-0">
-                        <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
-                          <Dumbbell className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{spot}</h3>
-                          <p className="text-sm text-white">Saved spot</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-12">
-                    <Heart className="mx-auto h-12 w-12 text-white mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No spots added yet</h3>
-                    <p className="text-white mb-4">
-  Your saved spots will appear here
-  </p>
-                    <Button onClick={() => navigate('/gyms')}>
-                      Find Spots
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
+  <div className="space-y-4">
+    {profilePosts.filter((post: any) => post.repost_of).length === 0 ? (
+      <p className="py-12 text-center text-sm text-white">
+        No Respawns yet
+      </p>
+    ) : (
+      profilePosts
+        .filter((post: any) => post.repost_of)
+        .map((post) => (
+          <SocialPost
+            key={post.id}
+            post={post}
+            currentUserId={user?.id}
+            onLikeChange={(delta) =>
+              updatePostLikeCount(post.id, delta)
+            }
+            onCommentChange={(delta) =>
+              updatePostCommentCount(post.id, delta)
+            }
+            onDelete={() =>
+              setProfilePosts((prev) =>
+                prev.filter((p) => p.id !== post.id)
+              )
+            }
+          />
+        ))
+    )}
+  </div>
+</TabsContent>
 
 <TabsContent value="posts" className="mt-6 -mx-6 sm:mx-0">
   {postsLoading ? (
