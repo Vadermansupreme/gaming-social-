@@ -37,6 +37,10 @@ interface Post {
   text: string | null;
   media_urls: string[] | null;
   repost_of?: string | null;
+  community?: {
+  name: string;
+  slug: string;
+} | null;
   like_count: number;
   comment_count: number;
   author: {
@@ -294,9 +298,35 @@ const handleStoryFileChange = async (
         if (error) throw error;
 
         const sb: any = supabase;
+        const postIds = (data || []).map(
+  (item: any) => item.post_id ?? item.id
+);
+let communityRows: any[] = [];
 
+if (postIds.length > 0) {
+  const { data: rows, error: communityError } = await sb
+    .from("posts")
+    .select(`
+      id,
+      community:communities (
+        name,
+        slug
+      )
+    `)
+    .in("id", postIds);
+
+  if (communityError) throw communityError;
+  communityRows = rows ?? [];
+}
         
+const communityMap: Record<
+  string,
+  { name: string; slug: string } | null
+> = {};
 
+communityRows.forEach((row: any) => {
+  communityMap[row.id] = row.community ?? null;
+});
 const { data: repostRows, error: repostError } = await sb
   .from("post_reposts")
   .select("post_id");
@@ -321,6 +351,7 @@ if (repostError) throw repostError;
             comment_count: item.comment_count ?? 0,
             repost_count: repostMap[item.post_id] || 0,
             repost_of: item.repost_of,
+            community: communityMap[item.post_id ?? item.id] ?? null,
             author: {
               display_name: item.author_display_name,
               avatar_url: item.author_avatar_url,
